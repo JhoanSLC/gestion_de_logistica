@@ -112,15 +112,30 @@ CREATE TABLE rutaAuxiliar (
     CONSTRAINT FkRutaAuxAuxiliar FOREIGN KEY (auxiliarId) REFERENCES auxiliar(auxiliarId)
 );
 
+CREATE TABLE marcaVehiculo (
+	marcaVehiculoId INT AUTO_INCREMENT,
+	nombre VARCHAR(30),
+	CONSTRAINT PkMarcaVehiculo PRIMARY KEY (marcaVehiculoId),
+);
+
+CREATE TABLE tipoVehiculo (
+	tipoVehiculoId INT AUTO_INCREMENT,
+	marcaId INT,
+	modelo VARCHAR(50),
+	CONSTRAINT PkTipoVehiculo PRIMARY KEY (tipoVehiculoId),
+	CONSTRAINT FkTipoMarca FOREIGN KEY (marcaId) REFERENCES marcaVehiculo(marcaVehiculoId)
+	
+);
+
 CREATE TABLE vehiculo (
-	vehiculoId INT AUTO_INCREMENT,
+vehiculoId INT AUTO_INCREMENT,
     placa VARCHAR(20),
-    marca VARCHAR(50),
-    modelo VARCHAR(50),
+    tipoVehiculoId INT,
     capacidadCarga DECIMAL(10,2),
     sucursalId INT,
     CONSTRAINT PkVehiculo PRIMARY KEY (vehiculoId),
-    CONSTRAINT FkVehiculoSucursal FOREIGN KEY (sucursalId) REFERENCES sucursal(sucursalId)
+    CONSTRAINT FkVehiculoSucursal FOREIGN KEY (sucursalId) REFERENCES sucursal(sucursalId),
+	CONSTRAINT FkVehiculoTipo FOREIGN KEY (tipoVehiculoId) REFERENCES tipoVehiculo(tipoVehiculoId)
 );
 
 CREATE TABLE conductor (
