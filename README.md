@@ -1,4 +1,6 @@
 
 # Ejercicio de creación de Base de datos y consultas
 
-<img style="text-align:center;"src="./gestionLogisticaDB.png" />
+<p style="text-align:center;">
+    <img src="./gestionLogisticaDB.png" />
+</p>
