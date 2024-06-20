@@ -1,6 +1,6 @@
-<p style="text-align:center;">ç
+<p style="text-align:center;">
 
-# Ejercicio de creación de Base de datos y consultas
+    <h1>Ejercicio de creación de Base de datos y consultas</h1>
 
 </p>
 
