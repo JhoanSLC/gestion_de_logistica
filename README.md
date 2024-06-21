@@ -284,18 +284,18 @@ LEFT JOIN sucursal s ON r.sucursalId = s.sucursalId;
 ```sql
 SELECT s.nombre AS sucursal,
        e.descripcion AS estado,
-       p.paqueteId AS id_paquete
-FROM sucursal s
+       p.paqueteId AS idPaquete
+FROM sucursal AS s
 JOIN vehiculo v ON s.sucursalId = v.sucursalId
 JOIN rutaConductor rc ON v.vehiculoId = rc.vehiculoId
-JOIN ruta r ON rc.rutaId = r.rutaId
-JOIN envio env ON r.rutaId = env.rutaId
-JOIN paquete p ON env.paqueteId = p.paqueteId
-JOIN estado e ON p.estadoId = e.estadoId
+JOIN ruta AS r ON rc.rutaId = r.rutaId
+JOIN envio AS env ON r.rutaId = env.rutaId
+JOIN paquete AS p ON env.paqueteId = p.paqueteId
+JOIN estado AS e ON p.estadoId = e.estadoId
 ORDER BY s.nombre, e.descripcion, p.paqueteId;
 
 +-----------------+-------------------+------------+
-| sucursal        | estado            | id_paquete |
+| sucursal        | estado            | idPaquete |
 +-----------------+-------------------+------------+
 | Sucursal Pekín  | Enviado           |          2 |
 | Sucursal Roma   | Listo para enviar |          1 |
@@ -311,4 +311,279 @@ ORDER BY s.nombre, e.descripcion, p.paqueteId;
 
 <br>
 
-**Descripción**: Un administrador desea obtener la información completa de un paquete especifico
+**Descripción**: Un administrador desea obtener la información completa de un paquete especifico y su historial de seguimiento
+
+```sql
+SELECT
+    p.paqueteId,
+    p.numeroSeguimiento,
+    p.peso,
+    p.dimensiones,
+    p.contenido,
+    p.valorDeclarado,
+    p.tipoServicio,
+    e.descripcion AS estadoActual,
+    s.ubicacion,
+    s.fechaHora
+FROM paquete AS p
+JOIN seguimiento AS s ON p.paqueteId = s.paqueteId
+JOIN estado AS e ON s.estadoId = e.estadoId
+WHERE p.paqueteId = 1; -- Id del paquete a buscar --
+```
+
+---
+
+<br>
+
+# Casos de uso Between, In y Not In
+
+---
+
+<br>
+
+## Caso de uso 1: Obtener paquetes enviados dentro de un rango de fechas
+
+<br>
+
+**Descripción** Un administrador desea obtener todos los paquetes que fueron enviados dentro de un rango de fecha específico
+
+```sql
+SELECT 
+    p.numeroSeguimiento AS 'Número de Seguimiento',
+    p.peso AS 'Peso',
+    p.dimensiones AS 'Dimensiones',
+    p.contenido AS 'Contenido',
+    p.valorDeclarado AS 'Valor Declarado',
+    p.tipoServicio AS 'Tipo de Servicio',
+    e.descripcion AS 'Estado',
+    DATE_FORMAT(ev.fechaHora, '%Y-%m-%d %H:%i:%s') AS 'Fecha y Hora de Evento'
+FROM 
+    paquete AS p
+JOIN 
+    seguimiento AS ev ON p.paqueteId = ev.paqueteId
+JOIN 
+    estado AS e ON ev.estadoId = e.estadoId
+WHERE 
+    ev.fechaHora BETWEEN '2024-01-01 00:00:00' AND '2024-06-22 23:59:59';
+```
+
+---
+
+<br>
+
+## Caso de uso 2: Obtener paquetes con ciertos estados
+
+<br>
+
+**Descripción**: Un administrador desea obtener todos los paquetes que tienen ciertso estados específicos (por ejemplo, 'en tánsito' o 'entregado').
+
+```sql
+SELECT 
+    p.numeroSeguimiento AS 'Número de Seguimiento',
+    p.peso AS 'Peso',
+    p.dimensiones AS 'Dimensiones',
+    p.contenido AS 'Contenido',
+    p.valorDeclarado AS 'Valor Declarado',
+    p.tipoServicio AS 'Tipo de Servicio',
+    e.descripcion AS 'Estado'
+FROM 
+    paquete AS p
+JOIN 
+    estado AS e ON p.estadoId = e.estadoId
+WHERE 
+    e.descripcion IN ('En tránsito internacional', 'Entregado parcialmente');
+```
+
+---
+
+<br>
+
+## Caso de uso 3: Obtener paquetes excluyendo ciertos estados
+
+<br>
+
+**Descripción**: Un administrador desea obtener todos los paquetes excluyendo aquellos que tienen ciertos estados específicos (por ejemplo, 'recibido' o 'retenido en aduana')
+
+```sql
+SELECT 
+    p.numeroSeguimiento AS 'Número de Seguimiento',
+    p.peso AS 'Peso',
+    p.dimensiones AS 'Dimensiones',
+    p.contenido AS 'Contenido',
+    p.valorDeclarado AS 'Valor Declarado',
+    p.tipoServicio AS 'Tipo de Servicio',
+    e.descripcion AS 'Estado'
+FROM 
+    paquete AS p
+JOIN 
+    estado AS e ON p.estadoId = e.estadoId
+WHERE 
+    e.descripcion NOT IN ('Recibido', 'Retenido');
+```
+
+---
+
+<br>
+
+## Caso de uso 4: Obtener clientes con envíos realizados dentro de un rango de fechas
+
+<br> 
+
+**Descripción** Un administrador desea obtener todos los clientes que realizaron envíos dentro de un rango de fechas específico
+
+```sql
+SELECT DISTINCT 
+    c.clienteId, 
+    c.nombre, 
+    c.email, 
+    c.direccion
+FROM cliente AS c
+INNER JOIN envio AS e ON c.clienteId = e.clienteId
+INNER JOIN paquete AS p ON e.paqueteId = p.paqueteId
+WHERE e.fechaEnvio BETWEEN '2024-01-01' AND '2024-06-30';
+```
+
+---
+
+<br>
+
+## Caso de uso 5: Obtener conductores disponibles que no están asignados a ciertas rutas
+
+<br> 
+
+**Descripción**: Un administrador desea obtener todos los conductores que no están asignados a ciertas rutas específicas.
+
+```sql
+SELECT 
+    c.conductorId, 
+    c.nombre
+FROM conductor AS c
+LEFT JOIN rutaConductor AS rc ON c.conductorId = rc.conductorId AND rc.rutaId IN (1, 3, 5)
+WHERE rc.conductorId IS NULL;
+
+```
+---
+
+<br>
+
+## Caso de uso 6: Obtener información de paquetes con valor declarado dentro de un rango específico
+
+<br>
+
+**Descripción**: Un administrador desea obtener todos los paquetes cuyo valor declarado está dentro de un rango específico.
+
+```sql
+SELECT 
+    paqueteId, 
+    numeroSeguimiento, 
+    peso, 
+    dimensiones, 
+    contenido, 
+    valorDeclarado, 
+    tipoServicio, 
+    estadoId
+FROM paquete
+WHERE valorDeclarado BETWEEN 50.00 AND 150.00;
+
+```
+
+---
+
+<br>
+
+## Caso de uso 7: Obtener auxiliares asignados a rutas específicas
+
+<br>
+
+**Descripción** Un administrador desea obtener todos los auxiliares de reparto que están asignados a ciertas rutas específicas
+
+```sql
+SELECT 
+    a.auxiliarId, 
+    a.nombre, 
+    a.telefono, 
+    r.descripcion AS ruta_asignada
+FROM auxiliar a
+JOIN rutaAuxiliar ra ON a.auxiliarId = ra.auxiliarId
+JOIN ruta r ON ra.rutaId = r.rutaId
+WHERE r.descripcion IN ('Ruta Toronto-Londres', 'Ruta Roma-Pekín', 'Ruta Sídney-Toronto');
+
+```
+
+---
+
+<br>
+
+## Caso de uso 8: Obtener envíos a destinos excluyendo ciertas ciudades
+
+<br>
+
+**Descripción**: Un administrador desea obtener todos los envíos cuyos destinos no están en ciertas ciudades específicas.
+
+```sql
+SELECT 
+    e.envioId, 
+    e.clienteId, 
+    e.paqueteId,
+    e.fechaEnvio, 
+    e.destino, 
+    r.descripcion AS ruta_asignada
+FROM envio e
+JOIN ruta r ON e.rutaId = r.rutaId
+JOIN ciudad c ON e.destino = c.nombre
+WHERE c.nombre NOT IN ('Toronto', 'Londres', 'Sídney');
+
+```
+
+---
+
+<br>
+
+## Caso de uso 9: Obtener seguimientos de paquetes en un rango de fechas
+
+<br>
+
+**Descripción**: Un administrador desea obtener todos los eventos de seguimiento de paquetes que ocurrieron dentro de un rango de fechas específico.
+
+```sql
+SELECT 
+    s.seguimientoId, 
+    s.paqueteId, 
+    s.ubicacion, 
+    s.fechaHora, 
+    e.descripcion AS estado
+FROM seguimiento s
+JOIN estado e ON s.estadoId = e.estadoId
+WHERE s.fechaHora BETWEEN '2024-01-01 00:00:00' AND '2024-6-21 23:59:59';
+
+```
+
+---
+
+<br>
+
+## Caso de uso 10: Obtener clientes que tienen ciertos tipos de paquetes
+
+<br>
+
+**Descripción** Un administrador desea obtener todos los clientes que tienen paquetes de ciertos tipos específicos (por ejemplo, 'nacional' o 'internacional')
+
+```sql
+SELECT DISTINCT 
+    c.clienteId, 
+    c.nombre, 
+    c.email,
+     c.direccion
+FROM cliente c
+JOIN envio e ON c.clienteId = e.clienteId
+JOIN paquete p ON e.paqueteId = p.paqueteId
+WHERE p.tipoServicio IN ('nacional', 'internacional');
+
+```
+
+-----
+
+<p style="text-align:center;">
+    <h1> FIN DEL EJERCICIO DE BASE DE DATOS </h1>
+</p>
+
