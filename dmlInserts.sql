@@ -140,10 +140,10 @@ INSERT INTO telefonoCliente (tipoTelefonoId, numero, clienteId) VALUES
 
 INSERT INTO ruta (descripcion, sucursalId) VALUES
 	('Ruta Toronto-Londres', 1),
-	('Ruta Roma-Pekín', 2),
-	('Ruta Sídney-Toronto', 3),
-	('Ruta Londres-Roma', 4),
-	('Ruta Pekín-Sídney', 5);
+	('Ruta Roma-Pekín', 3),
+	('Ruta Sídney-Toronto', 5),
+	('Ruta Londres-Roma', 2),
+	('Ruta Pekín-Sídney', 4);
 
 
 INSERT INTO rutaAuxiliar (rutaId, auxiliarId) VALUES

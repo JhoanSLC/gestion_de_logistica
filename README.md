@@ -1,4 +1,3 @@
-
 # Ejercicio de creación de base de datos y consultas
 
 <p style="text-align:center;">
@@ -16,7 +15,7 @@
 
 <br>
 
-**Descripción**: Un administrador desea agregar un nuevo país a la base de 
+**Descripción**: Un administrador desea agregar un nuevo país a la base de
 
 ```sql
 INSERT INTO pais (nombre) VALUES ('colombia');
@@ -24,8 +23,7 @@ INSERT INTO pais (nombre) VALUES ('colombia');
 
 <br>
 
--------
-
+---
 
 ## Caso de uso 2: Registrar una nueva ciudad
 
@@ -64,7 +62,7 @@ INSERT INTO tipoDocumento (tipo) VALUES ('cedula');
 INSERT INTO cliente (clienteId,tipoDocumentoId,nombre,email,direccion) VALUES ('1048065293',1,'Jhoan','JhoanSL32@gmail.com','calle 12 #12-42');
 ```
 
-**Explicación**: Se inserta primero un tipo de documento en la tabla de tipo de documentos que hará referencia al tipo de DNI con el que se registra al cliente y luego se registra al cliente mandando el id del tipo de documento con el que se registra.
+> **Explicación**: Se inserta primero un tipo de documento en la tabla de tipo de documentos que hará referencia al tipo de DNI con el que se registra al cliente y luego se registra al cliente mandando el id del tipo de documento con el que se registra.
 
 <br>
 
@@ -100,23 +98,143 @@ INSERT INTO telefonoCliente (tipoTelefonoId,numero,clienteId) VALUES (1,'3054426
 **Descripción**: Un administrador desea obtener la información completa de todos los envíos incluyendo detalles del cliente, paquete, ruta, conductor Y sucursal.
 
 ```sql
-SELECT 
-    envioId,
-    clienteId AS 'enviado por',
-    paqueteId,
-    fechaEnvio,
-    destino,
-    rutaId AS 'ruta',
-    sucursalId AS 'sucursal' 
-FROM envio;
+SELECT
+    envio.envioId,
+    envio.clienteId AS 'enviado por',
+    tipoDocumento.tipo AS 'tipoDocumento',
+	cliente.nombre,
+    cliente.email,
+    cliente.direccion,
+    envio.paqueteId,
+    envio.fechaEnvio,
+    envio.destino,
+    envio.rutaId AS 'ruta',
+    envio.sucursalId AS 'sucursal'
+FROM
+    envio
+JOIN
+    cliente ON envio.clienteId = cliente.clienteId
+JOIN
+	tipoDocumento ON envio.clienteId = cliente.clienteId AND cliente.tipoDocumentoId = tipoDocumento.tipoDocumentoId;
 
-+---------+-------------+-----------+---------------------+---------+------+----------+
-| envioId | enviado por | paqueteId | fechaEnvio          | destino | ruta | sucursal |
-+---------+-------------+-----------+---------------------+---------+------+----------+
-|       3 | 789123456   |         1 | 2024-06-20 12:29:28 | Roma    |    3 |        3 |
-|       4 | 456789123   |         2 | 2024-06-20 12:29:28 | Pekín   |    4 |        4 |
-+---------+-------------+-----------+---------------------+---------+------+----------+
++---------+-------------+----------------------+-------------------+-------------------------------+---------------------+-----------+---------------------+---------+------+----------+
+| envioId | enviado por | tipoDocumento        | nombre            | email                         | direccion           | paqueteId | fechaEnvio          | destino | ruta | sucursal |
++---------+-------------+----------------------+-------------------+-------------------------------+---------------------+-----------+---------------------+---------+------+----------+
+|       1 | 789123456   | Cédula               | Roberto Fernández | roberto.fernandez@example.com | Calle Gran Vía, 67  |         1 | 2024-06-20 17:00:04 | Roma    |    3 |        3 |
+|       2 | 456789123   | Licencia de conducir | Laura Gutiérrez   | laura.gutierrez@example.com   | Avenida del Mar, 34 |         2 | 2024-06-20 17:00:04 | Pekín   |    4 |        4 |
++---------+-------------+----------------------+-------------------+-------------------------------+---------------------+-----------+---------------------+---------+------+----------+
 
 ```
 
->**Explicación**: Para esta consulta se seleccionan
+**Explicación**: Para esta consulta se seleccionan las columnas de cliente, tipoDocumento y envio que se van a mostrar y luego se hace uso de un JOIN para decir que de la tabla cliente se agregue la información del cliente que corresponde al clienteId del envio y luego se hace otro JOIN para que de la tabla de tipoDocumento muestre el nombre del tipo de documento del cliente y no muestre solo el id del tipo de documento
+
+<br>
+
+---
+
+## Caso de uso 2: Obtener Historial de Envíos de un Cliente
+
+<br>
+
+**Descripción**: Un administrador desea obtener el historial completo de envíos de un cliente especifico, incluyendo detalles de los paquetes y los eventos de seguimiento.
+
+```sql
+SELECT
+    c.clienteId,
+    c.nombre AS nombreCliente,
+    e.envioId,
+    e.fechaEnvio,
+    e.destino,
+    p.paqueteId,
+    p.numeroSeguimiento,
+    p.peso,
+    p.dimensiones,
+    p.contenido,
+    p.valorDeclarado,
+    p.tipoServicio,
+    es.descripcion AS estadoPaquete,
+    s.seguimientoId,
+    s.ubicacion,
+    s.fechaHora,
+    es2.descripcion AS estadoSeguimiento
+FROM
+    cliente AS c
+JOIN
+    envio AS e ON c.clienteId = e.clienteId
+JOIN
+    paquete AS p ON e.paqueteId = p.paqueteId
+JOIN
+    estado AS es ON p.estadoId = es.estadoId
+JOIN
+    seguimiento AS s ON p.paqueteId = s.paqueteId
+JOIN
+    estado AS es2 ON s.estadoId = es2.estadoId
+WHERE
+    c.clienteId = '789123456'; -- Acá se coloca el id del cliente que se quiere buscar --
+
++-----------+-------------------+---------+---------------------+---------+-----------+-------------------+------+-------------+------------------------+----------------+--------------+-------------------+---------------+-----------------------------+---------------------+--------------------+
+| clienteId | nombreCliente     | envioId | fechaEnvio          | destino | paqueteId | numeroSeguimiento | peso | dimensiones | contenido              | valorDeclarado | tipoServicio | estadoPaquete     | seguimientoId | ubicacion                   | fechaHora           | estadoSeguimiento  |
++-----------+-------------------+---------+---------------------+---------+-----------+-------------------+------+-------------+------------------------+----------------+--------------+-------------------+---------------+-----------------------------+---------------------+--------------------+
+| 789123456 | Roberto Fernández |       1 | 2024-06-20 17:00:04 | Roma    |         1 | PKG010            | 4.00 | 16x22x10 cm | Documentos importantes |          70.00 | nacional     | Listo para enviar |             1 | En proceso de clasificación | 2024-06-20 17:00:04 | Listo para enviar  |
++-----------+-------------------+---------+---------------------+---------+-----------+-------------------+------+-------------+------------------------+----------------+--------------+-------------------+---------------+-----------------------------+---------------------+--------------------+
+```
+
+**Explicación**: En este caso se hace uso de varios JOIN para agregar la información del paquete, el cliente que lo envía, los seguimientos del paquete (en este caso solo uno).
+
+Luego de los JOIN está el WHERE que es donde se especifica el cliente del que se quiere buscar sus envíos
+
+---
+
+## Caso de uso 3: Listar conductores y sus rutas asignadas
+
+<br>
+
+**Desripción**: Un administrador desea obtener una lista de todos los conductores y las rutas a las que están asignados, incluyendo detalles del vehiculo utilizado y la sucursal correspondiente.
+
+```sql
+SELECT
+    co.conductorId,
+    co.nombre AS nombreConductor,
+    r.rutaId,
+    r.descripcion AS descripcionRuta,
+    v.vehiculoId,
+    v.placa,
+    v.capacidadCarga,
+    tv.modelo AS modeloVehiculo,
+    mv.nombre AS marcaVehiculo,
+    s.sucursalId,
+    s.nombre AS nombreSucursal,
+    s.direccion AS direccionSucursal,
+    c.nombre AS nombreCiudad,
+    p.nombre AS nombrePais
+FROM
+    conductor co
+JOIN
+    rutaConductor rc ON co.conductorId = rc.conductorId
+JOIN
+    ruta r ON rc.rutaId = r.rutaId
+JOIN
+    vehiculo v ON rc.vehiculoId = v.vehiculoId
+JOIN
+    tipoVehiculo tv ON v.tipoVehiculoId = tv.tipoVehiculoId
+JOIN
+    marcaVehiculo mv ON tv.marcaId = mv.marcaVehiculoId
+JOIN
+    sucursal s ON rc.sucursalId = s.sucursalId
+JOIN
+    ciudad c ON s.ciudadId = c.ciudadId
+JOIN
+    pais p ON c.paisId = p.paisId;
+
+
+
++-------------+------------------+--------+----------------------+------------+--------+----------------+-----------------+----------------+------------+------------------+---------------------+---------------+-------------+
+| conductorId | nombreConductor  | rutaId | descripcionRuta      | vehiculoId | placa  | capacidadCarga | modeloVehiculo  | marcaVehiculo  | sucursalId | nombreSucursal   | direccionSucursal   | nombreCiudad  | nombrePais  |
++-------------+------------------+--------+----------------------+------------+--------+----------------+-----------------+----------------+------------+------------------+---------------------+---------------+-------------+
+| 123654789   | Javier Rodríguez |      1 | Ruta Toronto-Londres |          1 | JKL012 |        1100.00 | Elantra         | Hyundai        |          1 | Sucursal Toronto | King Street, 123    | Toronto       | Canadá      |
+| 147852369   | Ana Martínez     |      2 | Ruta Roma-Pekín      |          2 | MNO345 |         850.00 | Sportage        | Kia            |          2 | Sucursal Londres | Oxford Street, 456  | Londres       | Reino Unido |
+| 963258741   | Diego López      |      3 | Ruta Sídney-Toronto  |          3 | PQR678 |        1000.00 | Golf            | Volkswagen     |          3 | Sucursal Roma    | Via del Corso, 789  | Roma          | Italia      |
+| 987456321   | Eva Ruiz         |      4 | Ruta Londres-Roma    |          4 | STU901 |        1200.00 | A4              | Audi           |          4 | Sucursal Pekín   | Changan Avenue, 101 | Pekín         | China       |
+| 456321478   | Mario Gómez      |      5 | Ruta Pekín-Sídney    |          5 | VWX234 |         950.00 | X3              | BMW            |          5 | Sucursal Sídney  | George Street, 234  | Sídney        | Australia   |
++-------------+------------------+--------+----------------------+------------+--------+----------------+-----------------+----------------+------------+------------------+---------------------+---------------+-------------+
+```
