@@ -238,3 +238,47 @@ JOIN
 | 456321478   | Mario Gómez      |      5 | Ruta Pekín-Sídney    |          5 | VWX234 |         950.00 | X3              | BMW            |          5 | Sucursal Sídney  | George Street, 234  | Sídney        | Australia   |
 +-------------+------------------+--------+----------------------+------------+--------+----------------+-----------------+----------------+------------+------------------+---------------------+---------------+-------------+
 ```
+
+---
+
+<br>
+
+## Caso de uso 4: Obtener detalles de rutas y auxiliares asignados
+
+<br>
+
+**Descripción**: Un administrador desea obtener detalles de todas las rutas, incluyendo los auxiliares asignados a cada ruta
+
+```sql
+SELECT r.rutaId, r.descripcion AS descripcionRuta, s.nombre AS nombreSucursal,
+       a.auxiliarId, a.nombre AS nombre_auxiliar
+FROM ruta AS r
+LEFT JOIN rutaAuxiliar ra ON r.rutaId = ra.rutaId
+LEFT JOIN auxiliar a ON ra.auxiliarId = a.auxiliarId
+LEFT JOIN sucursal s ON r.sucursalId = s.sucursalId;
+
+
++--------+----------------------+------------------+------------+---------------------+
+| rutaId | descripcionRuta      | nombreSucursal   | auxiliarId | nombreAuxiliar      |
++--------+----------------------+------------------+------------+---------------------+
+|      1 | Ruta Toronto-Londres | Sucursal Toronto | 258147369  | Marcos Ruiz         |
+|      2 | Ruta Roma-Pekín      | Sucursal Roma    | 369258147  | Lucía Martín        |
+|      3 | Ruta Sídney-Toronto  | Sucursal Sídney  | 147258369  | Verónica Gómez      |
+|      4 | Ruta Londres-Roma    | Sucursal Londres | 159753264  | Pablo Sánchez       |
+|      5 | Ruta Pekín-Sídney    | Sucursal Pekín   | 852963741  | Cristina Fernández  |
++--------+----------------------+------------------+------------+---------------------+
+```
+
+**Explicación**: Para esta consulta, que nos pidte los detalles de TODAS las rutas incluyendo si tiene asignado auxiliares y cuales son. Se hace uso de un LEFT JOIN para que nos muestre TODOS los datos de la tabla de ruta y se agregue el contenido de auxiliares en caso de que la ruta tenga (En este caso todas tienen una asignación)
+
+---
+
+<br>
+
+## Caso de uso 5: Generar reporte de paquetes por sucursal y estado
+
+<br>
+
+**Descripción**: Un administrador desea generar un reporte de todos los paquetes agrupados por sucursal y estado
+
+

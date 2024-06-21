@@ -93,3 +93,6 @@ JOIN
     ciudad c ON s.ciudadId = c.ciudadId
 JOIN
     pais p ON c.paisId = p.paisId;
+
+-- Caso de uso 4 --
+
