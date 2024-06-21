@@ -281,4 +281,34 @@ LEFT JOIN sucursal s ON r.sucursalId = s.sucursalId;
 
 **Descripción**: Un administrador desea generar un reporte de todos los paquetes agrupados por sucursal y estado
 
+```sql
+SELECT s.nombre AS sucursal,
+       e.descripcion AS estado,
+       p.paqueteId AS id_paquete
+FROM sucursal s
+JOIN vehiculo v ON s.sucursalId = v.sucursalId
+JOIN rutaConductor rc ON v.vehiculoId = rc.vehiculoId
+JOIN ruta r ON rc.rutaId = r.rutaId
+JOIN envio env ON r.rutaId = env.rutaId
+JOIN paquete p ON env.paqueteId = p.paqueteId
+JOIN estado e ON p.estadoId = e.estadoId
+ORDER BY s.nombre, e.descripcion, p.paqueteId;
 
++-----------------+-------------------+------------+
+| sucursal        | estado            | id_paquete |
++-----------------+-------------------+------------+
+| Sucursal Pekín  | Enviado           |          2 |
+| Sucursal Roma   | Listo para enviar |          1 |
++-----------------+-------------------+------------+
+```
+
+**Explicación**: Para esta consulta que pide ordenar la tabla con un orden especifico se usa ORDER BY para ordear la tabla por nombre, luego descripcion y por último el Id del paquete.
+
+---
+<br>
+
+## Caso de uso 6: Obtener información completa de un paquete y su historial de seguimiento
+
+<br>
+
+**Descripción**: Un administrador desea obtener la información completa de un paquete especifico
